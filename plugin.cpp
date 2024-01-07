@@ -1,4 +1,5 @@
-#include "logger.h"
+#include "Manager.h"
+
 
 SKSEPluginLoad(const SKSE::LoadInterface *skse) {
 
