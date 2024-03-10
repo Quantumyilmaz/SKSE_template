@@ -1,7 +1,3 @@
-
-#include <spdlog/sinks/basic_file_sink.h>
-
-
 namespace logger = SKSE::log;
 
 void SetupLog() {
@@ -12,7 +8,7 @@ void SetupLog() {
     auto fileLoggerPtr = std::make_shared<spdlog::sinks::basic_file_sink_mt>(logFilePath.string(), true);
     auto loggerPtr = std::make_shared<spdlog::logger>("log", std::move(fileLoggerPtr));
     spdlog::set_default_logger(std::move(loggerPtr));
-    spdlog::set_level(spdlog::level::trace);
-    spdlog::flush_on(spdlog::level::trace);
+    spdlog::set_level(spdlog::level::info);
+    spdlog::flush_on(spdlog::level::info);
     logger::info("Name of the plugin is {}.", pluginName);
 }

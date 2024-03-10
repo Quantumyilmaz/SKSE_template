@@ -6,8 +6,17 @@ set(steam_mods_output true)
 cmake_minimum_required(VERSION 3.21)
 
 # Set your project name. This will be the name of your SKSE .dll file.
-project(deneme VERSION 0.0.1 LANGUAGES CXX)
+project(Containerize VERSION 0.7 LANGUAGES CXX)
 
+include(cmake/headerlist.cmake)
+include(cmake/sourcelist.cmake)
+source_group(
+	TREE
+	${CMAKE_CURRENT_SOURCE_DIR}
+	FILES
+	${headers}
+	${sources}
+)
 # #
 # YOU DO NOT NEED TO EDIT ANYTHING BELOW HERE
 # #
@@ -20,6 +29,8 @@ project(deneme VERSION 0.0.1 LANGUAGES CXX)
 if(DEFINED ENV{SKYRIM_FOLDER} AND IS_DIRECTORY "$ENV{SKYRIM_FOLDER}/Data")
     set(OUTPUT_FOLDER "$ENV{SKYRIM_FOLDER}/Data")
 endif()
+
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
 # If you're using Mod Organizer 2 or Vortex, you might want this to go inside
 # of your "mods" folder, inside of a subfolder named "<your mod>".
@@ -37,11 +48,37 @@ endif()
 # Otherwise, you can set OUTPUT_FOLDER to any place you'd like :)
 # set(OUTPUT_FOLDER "C:/path/to/any/folder")
 
+
+
+# Drew W — 18.01.2024 02:44: Here is my CMakeLists.txt that uses FetchContent for NG
+include(FetchContent)
+
+set(ENABLE_SKYRIM_SE ON CACHE BOOL " " FORCE)
+set(ENABLE_SKYRIM_AE ON CACHE BOOL " " FORCE)
+set(ENABLE_SKYRIM_VR ON CACHE BOOL " " FORCE)
+set(BUILD_TESTS OFF CACHE BOOL " " FORCE)
+
+#FetchContent_MakeAvailable(CommonLibNG)
+add_subdirectory("C:/Users/Quant/GitHub/CommonLibSSE-NG" ${CMAKE_BINARY_DIR}/_deps/clib-build)
+get_target_property(commonlib_src_dir CommonLibSSE SOURCE_DIR)
+include(${commonlib_src_dir}/cmake/CommonLibSSE.cmake)
+
+
 # Setup your SKSE plugin as an SKSE plugin!
-find_package(CommonLibSSE CONFIG REQUIRED)
-add_commonlibsse_plugin(${PROJECT_NAME} SOURCES plugin.cpp) # <--- specifies plugin.cpp
+#find_package(CommonLibSSE CONFIG REQUIRED)
+add_commonlibsse_plugin(${PROJECT_NAME} SOURCES src/plugin.cpp) # <--- specifies plugin.cpp
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_23) # <--- use C++23 standard
-target_precompile_headers(${PROJECT_NAME} PRIVATE PCH.h) # <--- PCH.h is required!
+target_precompile_headers(${PROJECT_NAME} PRIVATE src/PCH.h) # <--- PCH.h is required!
+
+
+# CLIB-UTIL
+find_path(CLIB_UTIL_INCLUDE_DIRS "ClibUtil/utils.hpp")
+target_include_directories(
+	${PROJECT_NAME}
+	PRIVATE
+	${CLIB_UTIL_INCLUDE_DIRS}
+)
+
 
 # When your SKSE .dll is compiled, this will automatically copy the .dll into your mods folder.
 # Only works if you configure DEPLOY_ROOT above (or set the SKYRIM_MODS_FOLDER environment variable)
