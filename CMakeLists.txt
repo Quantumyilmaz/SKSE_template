@@ -6,7 +6,7 @@ set(steam_mods_output true)
 cmake_minimum_required(VERSION 3.21)
 
 # Set your project name. This will be the name of your SKSE .dll file.
-project(Containerize VERSION 0.7 LANGUAGES CXX)
+project(deneme VERSION 0.1 LANGUAGES CXX)
 
 include(cmake/headerlist.cmake)
 include(cmake/sourcelist.cmake)
@@ -50,7 +50,7 @@ endif()
 
 
 
-# Drew W — 18.01.2024 02:44: Here is my CMakeLists.txt that uses FetchContent for NG
+# Drew W ï¿½ 18.01.2024 02:44: Here is my CMakeLists.txt that uses FetchContent for NG
 include(FetchContent)
 
 set(ENABLE_SKYRIM_SE ON CACHE BOOL " " FORCE)
