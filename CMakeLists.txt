@@ -1,25 +1,40 @@
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
+
 set(wildlander_output false)
 set(steam_owrt_output false)
 set(steam_mods_output true)
+
 # It's recommended to set a minimum CMake version.
 # If you use CMake features from higher versions, update this to match.
 cmake_minimum_required(VERSION 3.21)
-
 # Set your project name. This will be the name of your SKSE .dll file.
-project(deneme VERSION 0.1 LANGUAGES CXX)
+set(AUTHOR_NAME "Quantumyilmaz")
+set(PRODUCT_NAME "deneme")
+project(PRODUCT_NAME VERSION 0.1.0.0 LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
 
-include(cmake/headerlist.cmake)
-include(cmake/sourcelist.cmake)
-source_group(
-	TREE
-	${CMAKE_CURRENT_SOURCE_DIR}
-	FILES
-	${headers}
-	${sources}
+
+
+
+configure_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/cmake/version.rc.in
+        ${CMAKE_CURRENT_BINARY_DIR}/version.rc
+        @ONLY)
+
+set(RESOURCE_FILE ${CMAKE_CURRENT_BINARY_DIR}/version.rc)
+set(RESOURCE_OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/version.res)
+
+add_custom_command(
+    OUTPUT ${RESOURCE_OUTPUT}
+    COMMAND rc /fo ${RESOURCE_OUTPUT} ${RESOURCE_FILE}
+    DEPENDS ${RESOURCE_FILE}
 )
-# #
-# YOU DO NOT NEED TO EDIT ANYTHING BELOW HERE
-# #
+
+# Add a custom target to ensure the resource file is generated
+add_custom_target(Resource ALL DEPENDS ${RESOURCE_OUTPUT})
+
 
 # If you're not using a mod manager, you probably want the SKSE plugin to go
 # inside of your Skyrim "Data" folder.
@@ -30,7 +45,6 @@ if(DEFINED ENV{SKYRIM_FOLDER} AND IS_DIRECTORY "$ENV{SKYRIM_FOLDER}/Data")
     set(OUTPUT_FOLDER "$ENV{SKYRIM_FOLDER}/Data")
 endif()
 
-list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
 # If you're using Mod Organizer 2 or Vortex, you might want this to go inside
 # of your "mods" folder, inside of a subfolder named "<your mod>".
@@ -48,8 +62,6 @@ endif()
 # Otherwise, you can set OUTPUT_FOLDER to any place you'd like :)
 # set(OUTPUT_FOLDER "C:/path/to/any/folder")
 
-
-
 # Drew W � 18.01.2024 02:44: Here is my CMakeLists.txt that uses FetchContent for NG
 include(FetchContent)
 
@@ -59,29 +71,44 @@ set(ENABLE_SKYRIM_VR ON CACHE BOOL " " FORCE)
 set(BUILD_TESTS OFF CACHE BOOL " " FORCE)
 
 #FetchContent_MakeAvailable(CommonLibNG)
-add_subdirectory("C:/Users/Quant/GitHub/CommonLibSSE-NG" ${CMAKE_BINARY_DIR}/_deps/clib-build)
+add_subdirectory("C:/Users/Quant/GitHub/CommonLibSSE-NG" ${CMAKE_CURRENT_BINARY_DIR}/_deps/clib-build)
 get_target_property(commonlib_src_dir CommonLibSSE SOURCE_DIR)
-include(${commonlib_src_dir}/cmake/CommonLibSSE.cmake)
-
-
-# Setup your SKSE plugin as an SKSE plugin!
-#find_package(CommonLibSSE CONFIG REQUIRED)
-add_commonlibsse_plugin(${PROJECT_NAME} SOURCES src/plugin.cpp) # <--- specifies plugin.cpp
-target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_23) # <--- use C++23 standard
-target_precompile_headers(${PROJECT_NAME} PRIVATE src/PCH.h) # <--- PCH.h is required!
-
 
 # CLIB-UTIL
 find_path(CLIB_UTIL_INCLUDE_DIRS "ClibUtil/utils.hpp")
+
+file(
+  GLOB_RECURSE
+  sources
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
+  ${CMAKE_CURRENT_BINARY_DIR}/version.rc
+)
+
+source_group(
+  TREE ${CMAKE_CURRENT_SOURCE_DIR}
+  FILES ${headers} ${sources}
+)
+
+set(BUILD_TESTS OFF)
+include(${commonlib_src_dir}/cmake/CommonLibSSE.cmake)
+
+add_commonlibsse_plugin(
+  ${PROJECT_NAME}
+  AUTHOR AUTHOR_NAME
+  SOURCES ${headers} ${sources}
+)
+target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_23) # <--- use C++23 standard
+target_precompile_headers(${PROJECT_NAME} PRIVATE src/PCH.h) # <--- PCH.h is required!
 target_include_directories(
 	${PROJECT_NAME}
 	PRIVATE
 	${CLIB_UTIL_INCLUDE_DIRS}
 )
 
+install(TARGETS ${PROJECT_NAME}
+        DESTINATION "${CMAKE_INSTALL_LIBDIR}")
 
-# When your SKSE .dll is compiled, this will automatically copy the .dll into your mods folder.
-# Only works if you configure DEPLOY_ROOT above (or set the SKYRIM_MODS_FOLDER environment variable)
+
 if(DEFINED OUTPUT_FOLDER)
     # If you specify an <OUTPUT_FOLDER> (including via environment variables)
     # then we'll copy your mod files into Skyrim or a mod manager for you!
