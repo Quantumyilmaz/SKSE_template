@@ -6,7 +6,7 @@ const RE::FormID skull = 0x000319E4;
 const RE::FormID sword = 0x00012EB7;
 const RE::FormID helmet = 0x00012E4D;
 RE::FormID fakeskull;
-RE::FormID fakesword;
+RE::FormID fakesword = 0;
 RE::FormID fakehelmet;
 
 
@@ -100,7 +100,10 @@ public:
         auto inv = crs_ref->GetInventory();
         for (auto& item : inv) {
             if (item.first->GetFormID() >= 0xFF000000 && !std::strlen(item.first->GetName())) {
-                if (item.first->GetFormID() == 0xff000c8f) {
+                if (auto bound_ = RE::TESForm::LookupByID<RE::TESBoundObject>(item.first->GetFormID())) {
+                    ReviveDynamicForm(item.first, bound_, item.first->GetFormID());
+				}
+                else if (item.first->GetFormID() == 0xff000c8f) {
                     logger::info("Found fake skull in player inventory.");
                     ReviveDynamicForm(item.first, RE::TESForm::LookupByID(skull), 0xff000c8f);
                     fakeskull = item.first->GetFormID();
@@ -135,6 +138,7 @@ void OnMessage(SKSE::MessagingInterface::Message* message) {
     }
     if (message->type == SKSE::MessagingInterface::kPostLoadGame) {
         // Post-load
+        auto player = RE::PlayerCharacter::GetSingleton();
         /*fakeskull = CreateFake<RE::TESObjectMISC>(RE::TESForm::LookupByID(skull)->As<RE::TESObjectMISC>());
         logger::info("Created fake skull with ID: {:x}", fakeskull);*/
         //player->AddObjectToContainer(RE::TESForm::LookupByID<RE::TESBoundObject>(fakeskull),nullptr,1,nullptr);
@@ -150,8 +154,7 @@ void OnMessage(SKSE::MessagingInterface::Message* message) {
             CreateFake<RE::TESObjectARMO>(RE::TESForm::LookupByID(helmet)->As<RE::TESObjectARMO>(), 0xff000c95);
         logger::info("Created fake helmet with ID: {:x}", fakehelmet);*/
 
-        /*auto player = RE::PlayerCharacter::GetSingleton();
-        auto inv = player->GetInventory();
+        /*auto inv = player->GetInventory();
         for (auto& item : inv) {
             if (item.first->GetFormID() >= 0xFF000000 && !std::strlen(item.first->GetName())) {
                 if (item.first->GetFormID() == 0xff000c91) {
@@ -168,11 +171,18 @@ void OnMessage(SKSE::MessagingInterface::Message* message) {
             logger::info("Item: {} formid {} count {} weight {} empty name {}, formtype {}", item.first->GetName(),
                             item.first->GetFormID(),item.second.first, item.first->GetWeight(), std::string(item.first->GetName()).empty(),item.first->FORMTYPE);
 		}*/
-        /*if (auto bound = RE::TESForm::LookupByID(0xff000c8f)) {
+        /*if (auto bound = RE::TESForm::LookupByID(0xff000c8d)) {
             logger::info("Deleting fake with formid {:x} and name {}", bound->GetFormID(), bound->GetName());
             if (std::strlen(bound->GetName()) == 0) delete bound;
             else logger::info("Name not empty so not deleting.");
 		}*/
+        while (fakesword < 0xff3dffff) {
+            fakesword = CreateFake<RE::TESObjectWEAP>(RE::TESForm::LookupByID(sword)->As<RE::TESObjectWEAP>());
+            logger::info("Created fake sword with ID: {:x}", fakesword);
+        }
+        logger::info("Created fake sword with ID: {:x}", fakesword);
+        /*fakeskull = CreateFake<RE::TESObjectMISC>(RE::TESForm::LookupByID(skull)->As<RE::TESObjectMISC>());
+        logger::info("Created fake skull with ID: {:x}", fakeskull);*/
 
     }
 }

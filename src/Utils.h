@@ -271,17 +271,15 @@ namespace DynamicForm {
             logger::error("Failed to create new form.");
             return 0;
         }
-        logger::info("Original form id: {:x}", new_form->GetFormID());
+        //logger::info("Original form id: {:x}", new_form->GetFormID());
 
-        ReviveDynamicForm(new_form, baseForm, setFormID);
+        //ReviveDynamicForm(new_form, baseForm, setFormID);
 
         const auto new_formid = new_form->GetFormID();
 
-        logger::info("Created form with type: {}, Base ID: {:x}, Ref ID: {:x}, Name: {}",
-
+        /*logger::info("Created form with type: {}, Base ID: {:x}, Ref ID: {:x}, Name: {}",
                 RE::FormTypeToString(new_form->GetFormType()), new_form->GetFormID(), new_form->GetFormID(),
-
-                new_form->GetName());
+                new_form->GetName());*/
 
         return new_formid;
     }
