@@ -4,3 +4,5 @@
 #include "SKSE/SKSE.h"
 
 using namespace std::literals;
+
+using FormID = RE::FormID;
