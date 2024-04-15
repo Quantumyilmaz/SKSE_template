@@ -283,6 +283,19 @@ namespace DynamicForm {
 
                 new_form->GetName());
 
+        // write the new_formid to txt file in a new line and create the file if it doesn't exist
+        std::string filepath = "Data/SKSE/Plugins/deneme/created_forms.txt";
+
+        // Open the file for appending
+        std::ofstream file(filepath, std::ios::app);
+        if (file.is_open()) {
+            file << std::hex << std::setw(8) << std::setfill('0') << new_formid << std::endl;
+            file.close();
+        }
+
+
+        
+
         return new_formid;
     }
 };
