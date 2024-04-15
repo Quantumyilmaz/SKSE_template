@@ -168,11 +168,11 @@ void OnMessage(SKSE::MessagingInterface::Message* message) {
             logger::info("Item: {} formid {} count {} weight {} empty name {}, formtype {}", item.first->GetName(),
                             item.first->GetFormID(),item.second.first, item.first->GetWeight(), std::string(item.first->GetName()).empty(),item.first->FORMTYPE);
 		}*/
-        if (auto bound = RE::TESForm::LookupByID(0xff000c8f)) {
+        /*if (auto bound = RE::TESForm::LookupByID(0xff000c8f)) {
             logger::info("Deleting fake with formid {:x} and name {}", bound->GetFormID(), bound->GetName());
             if (std::strlen(bound->GetName()) == 0) delete bound;
             else logger::info("Name not empty so not deleting.");
-		}
+		}*/
 
     }
 }
