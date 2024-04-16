@@ -25,6 +25,38 @@ void SwapObjects(RE::TESObjectREFR* a_from, RE::TESBoundObject* a_to) {
     a_from->SetObjectReference(a_to);
 }
 
+
+RE::TESObjectREFR* TryToGetRefInCell(const FormID baseid, const Count count, float radius = 180,
+                                     unsigned int max_try = 2) {
+    auto player_cell = RE::PlayerCharacter::GetSingleton()->GetParentCell();
+    auto& cell_runtime_data = player_cell->GetRuntimeData();
+    for (auto& ref : cell_runtime_data.references) {
+        if (!ref) continue;
+        /*if (ref->IsDisabled()) continue;
+        if (ref->IsMarkedForDeletion()) continue;
+        if (ref->IsDeleted()) continue;*/
+        if (ref->GetBaseObject()->GetFormID() == baseid && ref->extraList.GetCount() == count) {
+            logger::info("Ref found in cell: {} with id {}", ref->GetBaseObject()->GetName(), ref->GetFormID());
+            // get radius and check if ref is in radius
+            if (ref->GetFormID() < 4278190080) {
+                logger::trace("Ref is a placed reference. Continuing search.");
+                continue;
+            }
+            if (radius) {
+                auto player_pos = RE::PlayerCharacter::GetSingleton()->GetPosition();
+                auto ref_pos = ref->GetPosition();
+                if (player_pos.GetDistance(ref_pos) < radius)
+                    return ref.get();
+                else
+                    logger::trace("Ref is not in radius");
+            } else
+                return ref.get();
+        }
+    }
+    if (max_try) return TryToGetRefInCell(baseid, count, radius, --max_try);
+    return nullptr;
+}
+
 namespace DynamicForm {
 
     static void copyBookAppearence(RE::TESForm* source, RE::TESForm* target) {
@@ -156,6 +188,10 @@ namespace DynamicForm {
 
         auto ammoNewForm = fake->As<RE::TESAmmo>();
 
+        auto projBaseForm = base->As<RE::BGSProjectile>();
+
+        auto projNewForm = fake->As<RE::BGSProjectile>();
+
         if (weaponNewForm && weaponBaseForm) {
             weaponNewForm->firstPersonModelObject = weaponBaseForm->firstPersonModelObject;
 
@@ -208,6 +244,16 @@ namespace DynamicForm {
             ammoNewForm->GetRuntimeData().data.projectile = ammoBaseForm->GetRuntimeData().data.projectile;
 
         } 
+        else if (projBaseForm && projNewForm) {
+			projNewForm->data = projBaseForm->data;
+
+			projNewForm->muzzleFlashModel = projBaseForm->muzzleFlashModel;
+
+			projNewForm->soundLevel = projBaseForm->soundLevel;
+		} 
+        else {
+			copyAppearence(base, fake);
+		}
         /*else {
             new_form->Copy(baseForm);
         }*/

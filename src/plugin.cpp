@@ -5,15 +5,18 @@ using namespace DynamicForm;
 const RE::FormID skull = 0x000319E4;
 const RE::FormID sword = 0x00012EB7;
 const RE::FormID helmet = 0x00012E4D;
+const RE::FormID arrow = 0x0001397d;
 RE::FormID fakeskull;
 RE::FormID fakesword;
 RE::FormID fakehelmet;
+RE::FormID fakearrow;
 
 
 
 class OurEventSink : public RE::BSTEventSink<RE::TESActivateEvent>,
                      public RE::BSTEventSink<RE::TESContainerChangedEvent>,
-                    public RE::BSTEventSink<SKSE::CrosshairRefEvent>
+                    public RE::BSTEventSink<SKSE::CrosshairRefEvent>,
+                    public RE::BSTEventSink<RE::BGSActorCellEvent>
    {
     OurEventSink() = default;
     OurEventSink(const OurEventSink&) = delete;
@@ -120,6 +123,41 @@ public:
 
         return RE::BSEventNotifyControl::kContinue;
     }
+
+    RE::BSEventNotifyControl ProcessEvent(const RE::BGSActorCellEvent* a_event,
+                                          RE::BSTEventSource<RE::BGSActorCellEvent>*) {
+        logger::info("Cell event.");
+        if (!a_event) return RE::BSEventNotifyControl::kContinue;
+        auto eventActorHandle = a_event->actor;
+        auto eventActorPtr = eventActorHandle ? eventActorHandle.get() : nullptr;
+        auto eventActor = eventActorPtr ? eventActorPtr.get() : nullptr;
+        if (!eventActor) return RE::BSEventNotifyControl::kContinue;
+
+        if (eventActor != RE::PlayerCharacter::GetSingleton()) return RE::BSEventNotifyControl::kContinue;
+
+        auto cellID = a_event->cellID;
+        auto* cellForm = cellID ? RE::TESForm::LookupByID(cellID) : nullptr;
+        auto* cell = cellForm ? cellForm->As<RE::TESObjectCELL>() : nullptr;
+        if (!cell) return RE::BSEventNotifyControl::kContinue;
+
+
+        if (auto ref = RE::TESForm::LookupByID<RE::TESObjectREFR>(0xff000d53)) {
+            logger::info("Found ref with ID: {:x} and formiD {:x}", ref->GetFormID(),
+                            ref->GetBaseObject()->GetFormID());
+            if (auto projectile = ref->As<RE::Projectile>()) {
+                projectile->Load3D(false);
+                ref->Disable();
+                ref->Enable(false);
+                ref->SetActivationBlocked(false);
+            }
+        }
+        else {
+			logger::info("No ref found.");
+		}
+
+        return RE::BSEventNotifyControl::kContinue;
+    }
+
 };
 
 
@@ -132,47 +170,20 @@ void OnMessage(SKSE::MessagingInterface::Message* message) {
         /*eventSourceHolder->AddEventSink<RE::TESActivateEvent>(eventSink);
         eventSourceHolder->AddEventSink<RE::TESContainerChangedEvent>(eventSink);*/
         //SKSE::GetCrosshairRefEventSource()->AddEventSink(eventSink);
+        RE::PlayerCharacter::GetSingleton()->AsBGSActorCellEventSource()->AddEventSink(eventSink);
     }
     if (message->type == SKSE::MessagingInterface::kPostLoadGame) {
         // Post-load
-        /*fakeskull = CreateFake<RE::TESObjectMISC>(RE::TESForm::LookupByID(skull)->As<RE::TESObjectMISC>());
-        logger::info("Created fake skull with ID: {:x}", fakeskull);*/
-        //player->AddObjectToContainer(RE::TESForm::LookupByID<RE::TESBoundObject>(fakeskull),nullptr,1,nullptr);
-        /*if (auto bound = RE::TESForm::LookupByID<RE::TESBoundObject>(0xff000c8d)) {
-            logger::info("Found fake skull with ID: {:x}", bound->GetFormID());
-        }
-        else {
-			logger::info("No fake skull found.");
-		}*/
-        /*fakesword = CreateFake<RE::TESObjectWEAP>(RE::TESForm::LookupByID(sword)->As<RE::TESObjectWEAP>(), 0xff000c8d);
-        logger::info("Created fake sword with ID: {:x}", fakesword);*/
-        /*fakehelmet =
-            CreateFake<RE::TESObjectARMO>(RE::TESForm::LookupByID(helmet)->As<RE::TESObjectARMO>(), 0xff000c95);
-        logger::info("Created fake helmet with ID: {:x}", fakehelmet);*/
 
-        /*auto player = RE::PlayerCharacter::GetSingleton();
-        auto inv = player->GetInventory();
-        for (auto& item : inv) {
-            if (item.first->GetFormID() >= 0xFF000000 && !std::strlen(item.first->GetName())) {
-                if (item.first->GetFormID() == 0xff000c91) {
-					logger::info("Found fake skull in player inventory.");
-                    ReviveDynamicForm(item.first, RE::TESForm::LookupByID(skull), 0xff000c91);
-                    fakeskull = item.first->GetFormID();
-				}
-                else {
-                    logger::info("Item is null");
-                    player->RemoveItem(item.first, item.second.first, RE::ITEM_REMOVE_REASON::kRemove, nullptr, nullptr);
-                    continue;
-				}
+        /*if (auto ref = RE::TESForm::LookupByID<RE::TESObjectREFR>(0xff000d58)) {
+            logger::info("Found ref with ID: {:x} and formiD {:x}", ref->GetFormID(),
+                         ref->GetBaseObject()->GetFormID());
+            if (auto projectile = ref->As<RE::Projectile>()) {
+                projectile->Load3D(false);
+                ref->Disable();
+                ref->Enable(false);
             }
-            logger::info("Item: {} formid {} count {} weight {} empty name {}, formtype {}", item.first->GetName(),
-                            item.first->GetFormID(),item.second.first, item.first->GetWeight(), std::string(item.first->GetName()).empty(),item.first->FORMTYPE);
-		}*/
-        /*if (auto bound = RE::TESForm::LookupByID(0xff000c8f)) {
-            logger::info("Deleting fake with formid {:x} and name {}", bound->GetFormID(), bound->GetName());
-            if (std::strlen(bound->GetName()) == 0) delete bound;
-            else logger::info("Name not empty so not deleting.");
-		}*/
+        }*/
 
     }
 }

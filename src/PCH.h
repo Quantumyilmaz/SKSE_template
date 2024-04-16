@@ -6,3 +6,4 @@
 using namespace std::literals;
 
 using FormID = RE::FormID;
+using Count = RE::TESObjectREFR::Count;
