@@ -135,9 +135,10 @@ void OnMessage(SKSE::MessagingInterface::Message* message) {
     }
     if (message->type == SKSE::MessagingInterface::kPostLoadGame) {
         // Post-load
-        /*fakeskull = CreateFake<RE::TESObjectMISC>(RE::TESForm::LookupByID(skull)->As<RE::TESObjectMISC>());
-        logger::info("Created fake skull with ID: {:x}", fakeskull);*/
-        //player->AddObjectToContainer(RE::TESForm::LookupByID<RE::TESBoundObject>(fakeskull),nullptr,1,nullptr);
+        auto player = RE::PlayerCharacter::GetSingleton();
+        fakeskull = CreateFake<RE::TESObjectMISC>(RE::TESForm::LookupByID(skull)->As<RE::TESObjectMISC>());
+        logger::info("Created fake skull with ID: {:x}", fakeskull);
+        player->AddObjectToContainer(RE::TESForm::LookupByID<RE::TESBoundObject>(fakeskull),nullptr,1,nullptr);
         /*if (auto bound = RE::TESForm::LookupByID<RE::TESBoundObject>(0xff000c8d)) {
             logger::info("Found fake skull with ID: {:x}", bound->GetFormID());
         }
