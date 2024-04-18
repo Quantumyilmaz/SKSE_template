@@ -13,7 +13,8 @@ RE::FormID fakehelmet;
 
 class OurEventSink : public RE::BSTEventSink<RE::TESActivateEvent>,
                      public RE::BSTEventSink<RE::TESContainerChangedEvent>,
-                    public RE::BSTEventSink<SKSE::CrosshairRefEvent>
+                    public RE::BSTEventSink<SKSE::CrosshairRefEvent>,
+                     public RE::BSTEventSink<RE::TESFormDeleteEvent>
    {
     OurEventSink() = default;
     OurEventSink(const OurEventSink&) = delete;
@@ -93,31 +94,33 @@ public:
     RE::BSEventNotifyControl ProcessEvent(const SKSE::CrosshairRefEvent* event,
                                           RE::BSTEventSource<SKSE::CrosshairRefEvent>*) {
         if (!event->crosshairRef) return RE::BSEventNotifyControl::kContinue;
-        //event->crosshairRef->SetActivationBlocked(1);
         auto crs_ref = event->crosshairRef.get();
         if (!crs_ref->HasContainer()) return RE::BSEventNotifyControl::kContinue;
 
         auto inv = crs_ref->GetInventory();
         for (auto& item : inv) {
-            if (item.first->GetFormID() >= 0xFF000000 && !std::strlen(item.first->GetName())) {
-                if (item.first->GetFormID() == 0xff000c8f) {
-                    logger::info("Found fake skull in player inventory.");
-                    ReviveDynamicForm(item.first, RE::TESForm::LookupByID(skull), 0xff000c8f);
-                    fakeskull = item.first->GetFormID();
-                } else {
-                    logger::info("Item is null");
-                    crs_ref->RemoveItem(item.first, item.second.first, RE::ITEM_REMOVE_REASON::kRemove, nullptr,
-                                       nullptr);
-                    continue;
-                }
-            }
             logger::info("Item: {} formid {} count {} weight {} empty name {}, formtype {}", item.first->GetName(),
-                         item.first->GetFormID(), item.second.first, item.first->GetWeight(),
-                         std::string(item.first->GetName()).empty(), item.first->FORMTYPE);
+                    item.first->GetFormID(), item.second.first, item.first->GetWeight(),
+                    std::string(item.first->GetName()).empty(), item.first->FORMTYPE);
         }
 
         logger::trace("Crosshair ref.");
 
+        return RE::BSEventNotifyControl::kContinue;
+    }
+
+    RE::BSEventNotifyControl ProcessEvent(const RE::TESFormDeleteEvent* event,
+                                          RE::BSTEventSource<RE::TESFormDeleteEvent>*) {
+
+        if (!event) return RE::BSEventNotifyControl::kContinue;
+        
+        logger::info("form with formid {:x} deleted", event->formID);
+  //      if (auto temp = RE::TESForm::LookupByID(event->formID)) {
+		//	logger::info("form with formid {:x} and name {} deleted", event->formID, temp->GetName());
+		//}
+  //      else {
+		//	logger::info("form with formid {:x} not found", event->formID);
+		//}
         return RE::BSEventNotifyControl::kContinue;
     }
 };
@@ -129,24 +132,34 @@ void OnMessage(SKSE::MessagingInterface::Message* message) {
         // Start
         auto* eventSink = OurEventSink::GetSingleton();
         auto* eventSourceHolder = RE::ScriptEventSourceHolder::GetSingleton();
-        /*eventSourceHolder->AddEventSink<RE::TESActivateEvent>(eventSink);
-        eventSourceHolder->AddEventSink<RE::TESContainerChangedEvent>(eventSink);*/
-        //SKSE::GetCrosshairRefEventSource()->AddEventSink(eventSink);
+        eventSourceHolder->AddEventSink<RE::TESFormDeleteEvent>(eventSink);
+        eventSourceHolder->AddEventSink<RE::TESActivateEvent>(eventSink);
+        eventSourceHolder->AddEventSink<RE::TESContainerChangedEvent>(eventSink);
+        SKSE::GetCrosshairRefEventSource()->AddEventSink(eventSink);
     }
     if (message->type == SKSE::MessagingInterface::kPostLoadGame) {
         // Post-load
-        auto player = RE::PlayerCharacter::GetSingleton();
+        /*auto player = RE::PlayerCharacter::GetSingleton();
         fakeskull = CreateFake<RE::TESObjectMISC>(RE::TESForm::LookupByID(skull)->As<RE::TESObjectMISC>());
         logger::info("Created fake skull with ID: {:x}", fakeskull);
-        player->AddObjectToContainer(RE::TESForm::LookupByID<RE::TESBoundObject>(fakeskull),nullptr,1,nullptr);
-        /*if (auto bound = RE::TESForm::LookupByID<RE::TESBoundObject>(0xff000c8d)) {
+        player->AddObjectToContainer(RE::TESForm::LookupByID<RE::TESBoundObject>(fakeskull),nullptr,3,nullptr);*/
+        /*if (auto bound = RE::TESForm::LookupByID<RE::TESBoundObject>(0xff000c92)) {
             logger::info("Found fake skull with ID: {:x}", bound->GetFormID());
+            ReviveDynamicForm(bound, RE::TESForm::LookupByID(skull),0);
         }
         else {
-			logger::info("No fake skull found.");
-		}*/
-        /*fakesword = CreateFake<RE::TESObjectWEAP>(RE::TESForm::LookupByID(sword)->As<RE::TESObjectWEAP>(), 0xff000c8d);
-        logger::info("Created fake sword with ID: {:x}", fakesword);*/
+            logger::info("No fake skull found.");
+        }*/
+        //      SKSE::GetTaskInterface()->AddTask([]() {
+        //          if (auto temp = RE::TESForm::LookupByID(0xff000c8f);temp && std::strlen(temp->GetName())==0) {
+        //              logger::info("{}", temp->IsDeleted());
+        //              temp->SetDelete(true);
+        //              logger::info("{}", temp->IsDeleted());
+        //              delete temp;
+        //	}
+        //});
+        /*fakesword = CreateFake<RE::TESObjectWEAP>(RE::TESForm::LookupByID(sword)->As<RE::TESObjectWEAP>(),
+        0xff000c8d); logger::info("Created fake sword with ID: {:x}", fakesword);*/
         /*fakehelmet =
             CreateFake<RE::TESObjectARMO>(RE::TESForm::LookupByID(helmet)->As<RE::TESObjectARMO>(), 0xff000c95);
         logger::info("Created fake helmet with ID: {:x}", fakehelmet);*/
@@ -156,24 +169,22 @@ void OnMessage(SKSE::MessagingInterface::Message* message) {
         for (auto& item : inv) {
             if (item.first->GetFormID() >= 0xFF000000 && !std::strlen(item.first->GetName())) {
                 if (item.first->GetFormID() == 0xff000c91) {
-					logger::info("Found fake skull in player inventory.");
+                    logger::info("Found fake skull in player inventory.");
                     ReviveDynamicForm(item.first, RE::TESForm::LookupByID(skull), 0xff000c91);
                     fakeskull = item.first->GetFormID();
-				}
+                }
                 else {
                     logger::info("Item is null");
-                    player->RemoveItem(item.first, item.second.first, RE::ITEM_REMOVE_REASON::kRemove, nullptr, nullptr);
-                    continue;
-				}
+                    player->RemoveItem(item.first, item.second.first, RE::ITEM_REMOVE_REASON::kRemove, nullptr,
+        nullptr); continue;
+                }
             }
             logger::info("Item: {} formid {} count {} weight {} empty name {}, formtype {}", item.first->GetName(),
-                            item.first->GetFormID(),item.second.first, item.first->GetWeight(), std::string(item.first->GetName()).empty(),item.first->FORMTYPE);
-		}*/
-        /*if (auto bound = RE::TESForm::LookupByID(0xff000c8f)) {
-            logger::info("Deleting fake with formid {:x} and name {}", bound->GetFormID(), bound->GetName());
-            if (std::strlen(bound->GetName()) == 0) delete bound;
-            else logger::info("Name not empty so not deleting.");
-		}*/
+                            item.first->GetFormID(),item.second.first, item.first->GetWeight(),
+        std::string(item.first->GetName()).empty(),item.first->FORMTYPE);
+        }*/
+
+        //DeleteDynamicForm(0xff000c92);
 
     }
 }

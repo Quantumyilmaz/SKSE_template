@@ -285,6 +285,30 @@ namespace DynamicForm {
 
         return new_formid;
     }
+
+    void DeleteDynamicForm(const FormID dynamic_formid) {
+        if (auto newForm = RE::TESForm::LookupByID(dynamic_formid)) {
+            if (auto* virtualMachine = RE::BSScript::Internal::VirtualMachine::GetSingleton()) {
+                auto* handlePolicy = virtualMachine->GetObjectHandlePolicy();
+                auto* bindPolicy = virtualMachine->GetObjectBindPolicy();
+
+                if (handlePolicy && bindPolicy) {
+                    auto newHandler = handlePolicy->GetHandleForObject(newForm->GetFormType(), newForm);
+
+                    if (newHandler != handlePolicy->EmptyHandle()) {
+                        auto* vm_scripts_hashmap = &virtualMachine->attachedScripts;
+                        auto newHandlerScripts_it = vm_scripts_hashmap->find(newHandler);
+
+                        if (newHandlerScripts_it != vm_scripts_hashmap->end()) {
+                            logger::info("Total scripts attached to the form: {}", newHandlerScripts_it->second.size());
+                            vm_scripts_hashmap->clear();
+                        }
+                    }
+                }
+            }
+            delete newForm;
+        }
+    }
 };
 
 
