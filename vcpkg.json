@@ -3,6 +3,7 @@
   "name": "deneme",
   "version-string": "0.1",
   "dependencies": [
+    "rapidjson",
     "fast-cpp-csv-parser",
     "rsm-binary-io",
     "simpleini",
