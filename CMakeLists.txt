@@ -8,8 +8,8 @@ set(steam_mods_output true)
 # If you use CMake features from higher versions, update this to match.
 cmake_minimum_required(VERSION 3.21)
 # Set your project name. This will be the name of your SKSE .dll file.
-set(AUTHOR_NAME "Quantumyilmaz")
-set(PRODUCT_NAME "deneme")
+set(AUTHOR_NAME "AUTHORNAME")
+set(PRODUCT_NAME "MDDNAME")
 project(${PRODUCT_NAME} VERSION 0.1.0.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -71,7 +71,7 @@ set(ENABLE_SKYRIM_VR ON CACHE BOOL " " FORCE)
 set(BUILD_TESTS OFF CACHE BOOL " " FORCE)
 
 #FetchContent_MakeAvailable(CommonLibNG)
-add_subdirectory("C:/Users/Quant/GitHub/CommonLibSSE-NG" ${CMAKE_CURRENT_BINARY_DIR}/_deps/clib-build)
+add_subdirectory("$ENV{CLIBNG_ROOT}" ${CMAKE_CURRENT_BINARY_DIR}/_deps/clib-build)
 get_target_property(commonlib_src_dir CommonLibSSE SOURCE_DIR)
 
 # CLIB-UTIL
@@ -98,12 +98,17 @@ add_commonlibsse_plugin(
   SOURCES ${headers} ${sources}
 )
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_23) # <--- use C++23 standard
-target_precompile_headers(${PROJECT_NAME} PRIVATE src/PCH.h) # <--- PCH.h is required!
+target_precompile_headers(${PROJECT_NAME} PRIVATE include/PCH.h) # <--- PCH.h is required!
 target_include_directories(
 	${PROJECT_NAME}
 	PRIVATE
 	${CLIB_UTIL_INCLUDE_DIRS}
+    ${CMAKE_CURRENT_BINARY_DIR}/include
+	${CMAKE_CURRENT_SOURCE_DIR}/include
 )
+
+include(cmake/headerlist.cmake)
+include(cmake/sourcelist.cmake)
 
 install(TARGETS ${PROJECT_NAME}
         DESTINATION "${CMAKE_INSTALL_LIBDIR}")
