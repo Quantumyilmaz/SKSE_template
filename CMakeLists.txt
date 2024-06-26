@@ -21,9 +21,6 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
 
-
-
-
 configure_file(
         ${CMAKE_CURRENT_SOURCE_DIR}/cmake/version.rc.in
         ${CMAKE_CURRENT_BINARY_DIR}/version.rc
@@ -47,8 +44,8 @@ set(ENABLE_SKYRIM_AE ON CACHE BOOL " " FORCE)
 set(ENABLE_SKYRIM_VR ON CACHE BOOL " " FORCE)
 set(BUILD_TESTS OFF CACHE BOOL " " FORCE)
 
-add_subdirectory("$ENV{CLIBNG_ROOT}" ${CMAKE_CURRENT_BINARY_DIR}/_deps/clib-build)
-get_target_property(commonlib_src_dir CommonLibSSE SOURCE_DIR)
+add_subdirectory("$ENV{COMMONLIB_SSE_FOLDER}" ${CMAKE_CURRENT_BINARY_DIR}/_deps/clib-build)
+get_target_property(COMMONLIB_SRC_DIR CommonLibSSE SOURCE_DIR)
 
 find_path(CLIB_UTIL_INCLUDE_DIRS "ClibUtil/utils.hpp")
 find_path(SKSE_MCP_INCLUDE_DIRS "SKSEMCP/utils.hpp")
@@ -56,8 +53,8 @@ find_path(SKSE_MCP_INCLUDE_DIRS "SKSEMCP/utils.hpp")
 file(
   GLOB_RECURSE
   sources
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
   ${CMAKE_CURRENT_BINARY_DIR}/version.rc
+  ${sources}
 )
 
 source_group(
@@ -66,7 +63,7 @@ source_group(
 )
 
 set(BUILD_TESTS OFF)
-include(${commonlib_src_dir}/cmake/CommonLibSSE.cmake)
+include(${COMMONLIB_SRC_DIR}/cmake/CommonLibSSE.cmake)
 
 add_commonlibsse_plugin(
   ${PROJECT_NAME}
@@ -80,7 +77,6 @@ target_include_directories(
 	PRIVATE
 	${CLIB_UTIL_INCLUDE_DIRS}
     ${SKSE_MCP_INCLUDE_DIRS}
-    ${CMAKE_CURRENT_BINARY_DIR}/include
 	${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
