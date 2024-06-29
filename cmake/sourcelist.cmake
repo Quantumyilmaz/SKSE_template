@@ -5,4 +5,5 @@ set(sources ${sources}
 	src/Settings.cpp
 	src/Manager.cpp
 	src/Hooks.cpp
+	src/MCP.cpp
 )
