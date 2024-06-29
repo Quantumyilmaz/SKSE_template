@@ -21,4 +21,4 @@
 #### FEATURES
 Automatically imports:
 - [CLibUtil](https://github.com/powerof3/CLibUtil) by powerof3
-- [SKSE Menu Framework] (https://www.nexusmods.com/skyrimspecialedition/mods/120352) by Thiago099
+- [SKSE Menu Framework](https://www.nexusmods.com/skyrimspecialedition/mods/120352) by Thiago099
