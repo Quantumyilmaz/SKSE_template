@@ -16,7 +16,7 @@
 - (optional) Your plugin version. Default: `0.1.0.0`
 3. vcpkg.json
 - **`name`**: Your plugin's name.
-- **`version-string`**: Your plugin version. Default: `0.1`
+- **`version-string`**: Your plugin version. Default: `0.1.0.0`
 
 #### FEATURES
 Automatically imports:
