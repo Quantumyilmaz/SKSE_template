@@ -1,3 +1,5 @@
+#### New template at: https://github.com/QTR-Modding/SKSE_template_QY
+
 #### WINDOWS ENVIRONMENT VARIABLES TO SET
 
 1. **`COMMONLIB_SSE_FOLDER`**: The path to your clone of Commonlib.
