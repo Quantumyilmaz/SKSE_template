@@ -1,4 +1,5 @@
 #### New template at: https://github.com/QTR-Modding/SKSE_template_QY
+---
 
 #### WINDOWS ENVIRONMENT VARIABLES TO SET
 
